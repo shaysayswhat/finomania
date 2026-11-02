@@ -1,0 +1,21 @@
+' =====================================================================
+' Finomania demo 5: machine learning forecasts and risk management
+' =====================================================================
+import "data/stocks_daily.csv"
+series vol = @movstdev(100*dlog(alpha), 20)
+series r = 100*dlog(alpha)
+smpl 2015-02-01 @last
+' LSTM forecasting of realised volatility vs tree / linear benchmarks
+equation nn.lstm(lookback=20, hidden=32, epochs=60, seed=1) vol
+equation rf1.ml(method=rf, lookback=20) vol
+equation rd.ml(method=ridge, lookback=20) vol
+nn.loss
+nn.testplot
+nn.forecast(h=10)
+' risk
+risk r
+backtest(level=0.99, window=500, method=historical) r
+backtest(level=0.99, window=500, method=garch, refit=100) r
+series rr = r/100
+series ri = 100*dlog(index)/100
+perf(bench=ri) rr ri

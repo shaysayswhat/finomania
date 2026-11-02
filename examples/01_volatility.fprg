@@ -1,0 +1,48 @@
+' =====================================================================
+' Finomania demo 1: volatility modelling (ARCH family + DCC-GARCH)
+' Data: examples/data/stocks_daily.csv  (SIMULATED prices)
+' Run:  python -m finomania examples/01_volatility.fprg --html vol.html
+' =====================================================================
+import "data/stocks_daily.csv"
+
+' daily log returns in percent
+for %s alpha beta gamma delta index
+    series r_{%s} = 100*dlog({%s})
+next
+group rets r_alpha r_beta r_gamma r_delta
+
+stats rets
+hist r_alpha
+uroot(adf, trend=c) r_alpha
+correl(20) r_alpha^2
+
+' mean equation and ARCH-LM test
+equation eq_ols.ls r_alpha c r_alpha(-1)
+eq_ols.archtest(5)
+
+' the ARCH family
+equation eq_garch.arch(1,1) r_alpha c
+equation eq_gjr.arch(1,1,tarch, dist=t) r_alpha c
+equation eq_egarch.arch(1,1,egarch, dist=ged) r_alpha c
+equation eq_parch.arch(1,1,parch, dist=t) r_alpha c
+equation eq_garchm.arch(1,1, archm=sd, dist=t) r_alpha c
+equation eq_cgarch.arch(cgarch, dist=t) r_alpha c
+equation eq_figarch.figarch(dist=t) r_alpha c
+
+' compare information criteria
+scalar aic_garch = eq_garch.@aic
+scalar aic_gjr = eq_gjr.@aic
+scalar aic_egarch = eq_egarch.@aic
+logmsg AIC GARCH / GJR-t / EGARCH-GED computed
+
+eq_gjr.nic
+eq_gjr.signbias
+eq_gjr.makegarch h_alpha
+eq_gjr.forecast(h=20)
+
+' multivariate: DCC-GARCH with GJR-t margins
+equation dcc1.dcc(model=tarch, dist=t) r_alpha r_beta r_gamma r_delta
+dcc1.corrgraph
+dcc1.cctest(5)
+dcc1.makecorr
+equation bekk1.bekk r_alpha r_beta

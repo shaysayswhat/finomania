@@ -1,0 +1,23 @@
+' =====================================================================
+' Finomania demo 3: firm panel data   Data: data/firm_panel.csv (SIMULATED)
+' =====================================================================
+import(id=firm, date=year) "data/firm_panel.csv"
+stats(panel) inv q cf lev
+
+equation pooled.ls inv c q cf lev size
+equation fe.ls(cx=f, cov=cluster) inv c q cf lev size
+equation re.ls(cx=r) inv c q cf lev size
+equation tw.panel(method=twoway, cov=dk) inv c q cf lev size
+fe.fixedtest
+fe.hausman
+pooled.lmtest
+fe.cdtest
+fe.serialtest
+fe.hettest
+
+' dynamic investment model: Arellano-Bond and Blundell-Bond GMM
+equation ab.dpd(lags=1, endog="cf", collapse=1) inv q cf lev
+equation bb.dpd(lags=1, sys=1, endog="cf", collapse=1) inv q cf lev
+
+uroot q
+granger(lags=1) inv q

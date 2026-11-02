@@ -1,0 +1,32 @@
+' =====================================================================
+' Finomania demo 2: macro time series (unit roots, cointegration, VAR/VECM,
+' ARDL bounds test, ARIMA)   Data: data/macro_quarterly.csv (SIMULATED)
+' =====================================================================
+import "data/macro_quarterly.csv"
+
+urootsum cons income infl rate
+uroot(adf, trend=ct) cons
+uroot(kpss) d(cons)
+coint(johansen, lags=2) cons income
+coint(eg) cons income
+granger(lags=4) infl rate
+
+' VAR in inflation and the interest rate
+var v1.ls 1 2 infl rate @ c
+v1.laglen(8)
+v1.testexog
+v1.impulse(12)
+v1.decomp(12)
+v1.forecast(8)
+
+' error correction model for consumption and income
+equation vec1.vec(rank=1, lags=2) cons income
+' ARDL with bounds test
+equation ardl1.ardl(maxlag=4, maxdl=4, ic=aic) cons income
+' ARIMA and automatic order selection
+equation ar1.arima(1,0,1) infl c
+equation aa.autoarima(maxp=3, maxq=3) infl c
+aa.forecast(h=8)
+' Markov switching mean of inflation
+equation ms1.switchreg(k=2) infl c
+hpf(1600) income income_trend

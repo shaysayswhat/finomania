@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+build/
+dist/
+build/*.spec
+finomania_output/
+examples/*.html
+.pytest_cache/
+packaging/version_info.txt
+installer/

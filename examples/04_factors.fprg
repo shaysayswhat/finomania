@@ -1,0 +1,16 @@
+' =====================================================================
+' Finomania demo 4: Fama-French factor models.
+' Uses the SIMULATED factor file shipped in data/ so it runs offline.
+' With an internet connection simply omit file= to download the real
+' Kenneth French factors, e.g.  ff(model=ff5, freq=m) p1 p2 p3
+' =====================================================================
+import "data/portfolios_monthly.csv"
+' portfolio returns are in percent: keep the factors in percent too
+equation ff5.ff(model=ff5, file="data/ff5_factors_simulated.csv", units=pct, cov=hac) p1 p2 p3 p4 p5 p6 p7 p8 p9 p10
+ff5.grs
+ff5.fmb(nw=3)
+ff5.rolling(asset=p1, window=60)
+ff5.alphaplot
+ff5.factorstats
+equation capm.ff(model=capm, file="data/ff5_factors_simulated.csv", units=pct) p1 p5 p10
+equation fmb1.fmb(factors="mkt_rf smb hml rmw cma", rf=rf) p1 p2 p3 p4 p5 p6 p7 p8 p9 p10
